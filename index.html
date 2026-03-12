@@ -1,0 +1,285 @@
+<html lang="tr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kral Pop TV • Player</title>
+<style>
+:root{
+  --bg:#050815;
+  --card: rgba(255,255,255,.06);
+  --stroke: rgba(255,255,255,.10);
+  --txt:#eaf2ff;
+  --muted: rgba(234,242,255,.60);
+  --c1:#00f0ff;
+  --r:22px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial;
+  color:var(--txt);
+  background:
+    radial-gradient(900px 520px at 12% -10%, rgba(0,240,255,.14), transparent 55%),
+    radial-gradient(900px 520px at 92% 10%, rgba(168,85,247,.12), transparent 55%),
+    linear-gradient(180deg, #020617, var(--bg));
+  display:flex;
+  flex-direction:column;
+}
+.top{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  border-bottom:1px solid var(--stroke);
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(14px);
+  position:sticky; top:0;
+  z-index:10;
+}
+.brand{display:flex; align-items:center; gap:10px; min-width:0;}
+.brand img{
+  width:38px; height:38px;
+  border-radius:14px;
+  background: rgba(255,255,255,.06);
+  border:1px solid var(--stroke);
+  padding:6px;
+  object-fit:contain;
+}
+.title{
+  min-width:0;
+  font-weight:950;
+  letter-spacing:.3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.actions{margin-left:auto; display:flex; gap:8px; align-items:center;}
+.btn{
+  cursor:pointer;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color:var(--txt);
+  border-radius: 14px;
+  padding:10px 12px;
+  font-weight:950;
+  font-size:13px;
+  user-select:none;
+  transition:.15s;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.09); }
+.btn.primary{ border-color: rgba(0,240,255,.25); background: rgba(0,240,255,.10); }
+.btn.ghost{ background: transparent; }
+.wrap{ flex:1; display:flex; padding:14px; }
+.card{
+  width:100%;
+  border-radius: var(--r);
+  border:1px solid var(--stroke);
+  background: var(--card);
+  overflow:hidden;
+  box-shadow: 0 24px 120px rgba(0,240,255,.10);
+  position:relative;
+}
+.frame{ width:100%; height:100%; border:0; display:block; background:#000; }
+.hint{
+  position:absolute;
+  left:14px; bottom:12px;
+  padding:8px 10px;
+  border-radius: 999px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.45);
+  color: var(--muted);
+  font-size:12px;
+  backdrop-filter: blur(10px);
+}
+@media (max-width: 980px){
+  .wrap{ padding:10px; }
+  .btn{ padding:9px 10px; }
+}
+</style>
+</head>
+<body>
+<div class="top">
+<div class="brand">
+<img src="https://assets.uzunmuhalefet.com/logos/1dc650d4-0a3f-4f97-bdb2-4cf01cef8e0a.png">
+<div class="title">Kral Pop TV								| Çok Yakında Diğer Yayınlar | </div>
+</div>
+<div class="actions">
+<button type="button" class="btn" onclick="toggleChat()">💬 Chat</button>
+<button type="button" class="btn" onclick="goBack()">← Geri</button>
+<button type="button" class="btn primary" onclick="goFs()">⛶ Tam ekran</button>
+</div>
+</div>
+<div class="wrap">
+<div class="card" id="card">
+<iframe class="frame" id="frame" src="https://streams.uzunmuhalefet.com/stream/1604703d-b882-4ea0-9c4d-bc4ea1f0d463.m3u8" allow="autoplay; fullscreen" referrerpolicy="no-referrer"></iframe>
+<div class="hint">Çerçeveli Player</div>
+</div>
+</div>
+<div id="chatBox" style="
+position:fixed; right:20px; bottom:20px;
+width:340px; height:460px;
+background:rgba(0,0,0,.78);
+border:1px solid rgba(255,255,255,.15);
+border-radius:18px; display:none; flex-direction:column;
+z-index:999999; backdrop-filter:blur(14px);
+box-shadow:0 18px 60px rgba(0,0,0,.45);
+overflow:hidden;">
+<div style="padding:10px 12px; font-weight:950; border-bottom:1px solid rgba(255,255,255,.10);
+  display:flex; align-items:center; gap:10px;">
+<span>Canlı Chat</span>
+<span style="margin-left:auto; font-size:12px; color:rgba(255,255,255,.7)">
+🟢 Online: <b id="chatOnline">0</b>
+</span>
+<button class="btn ghost" style="padding:6px 10px" onclick="toggleChat()">✕</button>
+</div>
+<div id="chatMessages" style="flex:1; overflow:auto; padding:10px; font-size:13px;"></div>
+<div style="padding:10px; border-top:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.35)">
+<div style="display:flex; gap:8px;">
+<input id="chatInput" placeholder="Mesaj yaz... 🙂" style="flex:1; padding:9px 10px; border-radius:12px; border:1px solid rgba(255,255,255,.15);
+        background:#0b0f18; color:white; outline:none;">
+<button type="button" onclick="sendMsg()" style="padding:9px 12px; border-radius:12px; border:none;
+        background:rgba(168,85,247,.9); font-weight:950; color:white;">Gönder</button>
+</div>
+<div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+<button type="button" onclick="addEmoji('😂')" class="btn" style="padding:6px 10px">😂</button>
+<button type="button" onclick="addEmoji('🔥')" class="btn" style="padding:6px 10px">🔥</button>
+<button type="button" onclick="addEmoji('❤️')" class="btn" style="padding:6px 10px">❤️</button>
+<button type="button" onclick="addEmoji('😎')" class="btn" style="padding:6px 10px">😎</button>
+<button type="button" onclick="addEmoji('👏')" class="btn" style="padding:6px 10px">👏</button>
+<button type="button" onclick="addEmoji('⚽')" class="btn" style="padding:6px 10px">⚽</button>
+</div>
+</div>
+</div>
+<script>
+// ✅ giriş yapan user/rol
+window.CHAT_USER = "rte";
+window.CHAT_ROLE = "uye";
+
+// fullscreen
+function goFs(){
+  const el = document.getElementById("card");
+  if(el && el.requestFullscreen) el.requestFullscreen();
+}
+
+// geri (vip_return_url varsa oraya)
+function goBack(){
+  const saved = localStorage.getItem("vip_return_url");
+  if(saved){ location.href = saved; return; }
+  location.href = "vip.php";
+}
+
+let chatTimer = null;
+let lastChatTs = 0;
+
+function toggleChat(){
+  const box = document.getElementById("chatBox");
+  const open = box.style.display !== "flex";
+  box.style.display = open ? "flex" : "none";
+
+  if(open){
+    loadChat(true);
+    if(!chatTimer) chatTimer = setInterval(()=>loadChat(false), 2000);
+  }
+}
+
+function addEmoji(e){
+  const i = document.getElementById("chatInput");
+  i.value = (i.value || "") + e;
+  i.focus();
+}
+
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+}
+
+async function loadChat(forceScroll){
+  try{
+    const r = await fetch("chat.php?api=fetch", {cache:"no-store"});
+    const j = await r.json();
+    if(!j.ok) return;
+
+    document.getElementById("chatOnline").textContent = j.online || 0;
+
+    const isMod = (j.me && ["moderator","admin"].includes(j.me.role));
+
+    const el = document.getElementById("chatMessages");
+    el.innerHTML = (j.messages || []).map(m=>{
+      const time = m.t ? new Date(m.t*1000).toLocaleTimeString("tr-TR",{hour:'2-digit',minute:'2-digit'}) : "";
+      const delBtn = isMod
+        ? `<button type="button" onclick="delMsg('${m.id}')" style="margin-left:6px;font-size:11px;border:none;border-radius:8px;padding:4px 6px;background:rgba(255,0,80,.25);color:#fff;cursor:pointer;">Sil</button>`
+        : "";
+
+      return `
+        <div style="padding:8px 10px; margin-bottom:8px; border:1px solid rgba(255,255,255,.08);
+        background:rgba(255,255,255,.04); border-radius:14px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b style="color:rgba(0,240,255,.95)">${escapeHtml(m.user)}</b>
+            <span style="margin-left:auto; font-size:11px; color:rgba(255,255,255,.55)">${time}</span>
+            ${delBtn}
+          </div>
+          <div style="margin-top:4px; color:rgba(255,255,255,.9); white-space:pre-wrap; word-break:break-word;">
+            ${escapeHtml(m.msg)}
+          </div>
+        </div>`;
+    }).join("");
+
+    if(forceScroll) el.scrollTop = el.scrollHeight;
+  }catch(e){}
+}
+
+async function sendMsg(){
+  const input = document.getElementById("chatInput");
+  const msg = (input.value || "").trim();
+  if(!msg) return;
+
+  const now = Date.now();
+  if(now - lastChatTs < 1200) return;
+  lastChatTs = now;
+
+  try{
+    const body = new URLSearchParams();
+    body.set("msg", msg); // ✅ user sessiondan alınacak
+
+    const r = await fetch("chat.php?api=send", {
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body: body.toString()
+    });
+
+    const j = await r.json();
+    if(j.ok){
+      input.value = "";
+      loadChat(true);
+    }
+  }catch(e){}
+}
+
+async function delMsg(id){
+  try{
+    const body = new URLSearchParams();
+    body.set("id", id);
+    const r = await fetch("chat.php?api=delete", {
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body: body.toString()
+    });
+    const j = await r.json();
+    if(j.ok) loadChat(false);
+  }catch(e){}
+}
+
+document.addEventListener("keydown",(e)=>{
+  if(e.key === "Enter" && document.activeElement && document.activeElement.id === "chatInput"){
+    e.preventDefault();
+    sendMsg();
+  }
+});
+</script>
+<script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;9de52f294fb347138003f28b20d2dae2&quot;,&quot;r&quot;:1,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
+
+
+</body></html>
