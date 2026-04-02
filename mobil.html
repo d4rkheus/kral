@@ -1,0 +1,479 @@
+<html lang="tr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Kral Pop TV • Player</title>
+<style>
+:root{
+  --bg:#050815;
+  --card: rgba(255,255,255,.06);
+  --stroke: rgba(255,255,255,.10);
+  --txt:#eaf2ff;
+  --muted: rgba(234,242,255,.60);
+  --c1:#00f0ff;
+  --r:22px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%; height:100dvh; overflow:hidden;}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial;
+  color:var(--txt);
+  background:
+    radial-gradient(900px 520px at 12% -10%, rgba(0,240,255,.14), transparent 55%),
+    radial-gradient(900px 520px at 92% 10%, rgba(168,85,247,.12), transparent 55%),
+    linear-gradient(180deg, #020617, var(--bg));
+  display:flex;
+  flex-direction:column;
+}
+
+/* TOP BAR */
+.top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  padding-top: calc(10px + var(--safe-top));
+  border-bottom:1px solid var(--stroke);
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  position:sticky; top:0;
+  z-index:10;
+  flex-shrink:0;
+}
+.brand{display:flex; align-items:center; gap:8px; min-width:0; flex:1;}
+.brand img{
+  width:36px; height:36px;
+  border-radius:12px;
+  background: rgba(255,255,255,.06);
+  border:1px solid var(--stroke);
+  padding:5px;
+  object-fit:contain;
+  flex-shrink:0;
+}
+.title{
+  min-width:0;
+  font-weight:700;
+  font-size:14px;
+  letter-spacing:.2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.actions{display:flex; gap:6px; align-items:center; flex-shrink:0;}
+.btn{
+  cursor:pointer;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color:var(--txt);
+  border-radius: 12px;
+  padding:9px 11px;
+  font-weight:700;
+  font-size:13px;
+  user-select:none;
+  transition:.15s;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  -webkit-appearance:none;
+  touch-action:manipulation;
+}
+.btn:active{ transform: scale(0.96); }
+.btn:hover{ background: rgba(255,255,255,.09); }
+.btn.primary{ border-color: rgba(0,240,255,.25); background: rgba(0,240,255,.10); }
+.btn.ghost{ background: transparent; border-color:transparent; }
+
+/* MAIN CONTENT */
+.wrap{
+  flex:1;
+  display:flex;
+  padding:10px;
+  min-height:0;
+}
+.card{
+  width:100%;
+  border-radius: var(--r);
+  border:1px solid var(--stroke);
+  background: var(--card);
+  overflow:hidden;
+  box-shadow: 0 24px 120px rgba(0,240,255,.10);
+  position:relative;
+}
+.frame{ width:100%; height:100%; border:0; display:block; background:#000; }
+.hint{
+  position:absolute;
+  left:12px; bottom:10px;
+  padding:6px 10px;
+  border-radius: 999px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.45);
+  color: var(--muted);
+  font-size:11px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* BG PLAY STATUS BADGE */
+#bgStatus{
+  position:absolute;
+  right:12px; top:12px;
+  padding:5px 10px;
+  border-radius: 999px;
+  border:1px solid rgba(0,240,255,.25);
+  background: rgba(0,0,0,.55);
+  color: rgba(0,240,255,.9);
+  font-size:11px;
+  font-weight:700;
+  backdrop-filter: blur(10px);
+  display:none;
+}
+
+/* BOTTOM NAV (mobile) */
+.bottomBar{
+  display:none;
+  align-items:center;
+  justify-content:space-around;
+  padding:8px 8px;
+  padding-bottom: calc(8px + var(--safe-bottom));
+  border-top:1px solid var(--stroke);
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  flex-shrink:0;
+}
+.bottomBar .btn{
+  flex-direction:column;
+  gap:3px;
+  padding:6px 14px;
+  font-size:11px;
+  border-radius:10px;
+}
+.bottomBar .bIcon{ font-size:18px; line-height:1; }
+
+/* CHAT BOX */
+#chatBox{
+  position:fixed; right:12px; bottom:12px;
+  bottom: calc(12px + var(--safe-bottom));
+  width: min(340px, calc(100vw - 24px));
+  height: min(460px, 65dvh);
+  background:rgba(0,0,0,.82);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:18px; display:none; flex-direction:column;
+  z-index:999999; backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  box-shadow:0 18px 60px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+#chatBox.open{ display:flex; }
+
+.chatHead{
+  padding:10px 12px;
+  font-weight:700;
+  border-bottom:1px solid rgba(255,255,255,.10);
+  display:flex; align-items:center; gap:10px;
+  flex-shrink:0;
+}
+#chatMessages{
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  padding:10px; font-size:13px;
+  -webkit-overflow-scrolling:touch;
+}
+.chatFooter{
+  padding:8px 10px;
+  padding-bottom: calc(8px + var(--safe-bottom));
+  border-top:1px solid rgba(255,255,255,.10);
+  background:rgba(0,0,0,.35);
+  flex-shrink:0;
+}
+.chatInputRow{ display:flex; gap:6px; }
+#chatInput{
+  flex:1; padding:9px 10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.15);
+  background:#0b0f18; color:white; outline:none;
+  font-size:14px;
+}
+.sendBtn{
+  padding:9px 12px; border-radius:12px; border:none;
+  background:rgba(168,85,247,.9); font-weight:700; color:white;
+  cursor:pointer; touch-action:manipulation;
+}
+.emojiRow{
+  display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;
+}
+.emojiRow .btn{ padding:5px 9px; }
+
+/* MOBILE ADJUSTMENTS */
+@media (max-width: 640px){
+  .top .actions .btn[data-desktop]{ display:none; }
+  .bottomBar{ display:flex; }
+  .wrap{ padding:8px 8px 0; }
+  .card{ border-radius:16px; }
+  .title{ font-size:13px; }
+  .brand img{ width:32px; height:32px; border-radius:10px; }
+}
+@media (min-width: 641px){
+  .bottomBar{ display:none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top">
+  <div class="brand">
+    <img src="https://assets.uzunmuhalefet.com/logos/1dc650d4-0a3f-4f97-bdb2-4cf01cef8e0a.png" alt="Kral Pop">
+    <div class="title">Kral Pop TV &nbsp;|&nbsp; Çok Yakında Diğer Yayınlar</div>
+  </div>
+  <div class="actions">
+    <button type="button" class="btn" data-desktop onclick="toggleChat()">💬 Chat</button>
+    <button type="button" class="btn" data-desktop onclick="goBack()">← Geri</button>
+    <button type="button" class="btn primary" data-desktop onclick="goFs()">⛶ Tam ekran</button>
+  </div>
+</div>
+
+<!-- VIDEO AREA -->
+<div class="wrap">
+  <div class="card" id="card">
+    <iframe class="frame" id="frame"
+      src="https://streams.uzunmuhalefet.com/stream/1604703d-b882-4ea0-9c4d-bc4ea1f0d463.m3u8"
+      allow="autoplay; fullscreen"
+      referrerpolicy="no-referrer"
+      allowfullscreen
+      playsinline
+      webkit-playsinline></iframe>
+    <div class="hint">Çerçeveli Player</div>
+    <div id="bgStatus">▶ Arka planda çalıyor</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV (only mobile) -->
+<div class="bottomBar">
+  <button type="button" class="btn ghost" onclick="goBack()">
+    <span class="bIcon">←</span>
+    <span>Geri</span>
+  </button>
+  <button type="button" class="btn ghost" onclick="toggleChat()">
+    <span class="bIcon">💬</span>
+    <span>Chat</span>
+  </button>
+  <button type="button" class="btn ghost primary" onclick="goFs()">
+    <span class="bIcon">⛶</span>
+    <span>Tam ekran</span>
+  </button>
+</div>
+
+<!-- CHAT BOX -->
+<div id="chatBox">
+  <div class="chatHead">
+    <span>Canlı Chat</span>
+    <span style="margin-left:auto; font-size:12px; color:rgba(255,255,255,.7)">
+      🟢 Online: <b id="chatOnline">0</b>
+    </span>
+    <button class="btn ghost" style="padding:6px 10px" onclick="toggleChat()">✕</button>
+  </div>
+  <div id="chatMessages"></div>
+  <div class="chatFooter">
+    <div class="chatInputRow">
+      <input id="chatInput" placeholder="Mesaj yaz... 🙂">
+      <button type="button" class="sendBtn" onclick="sendMsg()">Gönder</button>
+    </div>
+    <div class="emojiRow">
+      <button type="button" onclick="addEmoji('😂')" class="btn" style="padding:5px 9px">😂</button>
+      <button type="button" onclick="addEmoji('🔥')" class="btn" style="padding:5px 9px">🔥</button>
+      <button type="button" onclick="addEmoji('❤️')" class="btn" style="padding:5px 9px">❤️</button>
+      <button type="button" onclick="addEmoji('😎')" class="btn" style="padding:5px 9px">😎</button>
+      <button type="button" onclick="addEmoji('👏')" class="btn" style="padding:5px 9px">👏</button>
+      <button type="button" onclick="addEmoji('⚽')" class="btn" style="padding:5px 9px">⚽</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── FULLSCREEN ── */
+function goFs(){
+  const el = document.getElementById("card");
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+  if(req) req.call(el);
+}
+
+/* ── GERİ ── */
+function goBack(){
+  const saved = localStorage.getItem("vip_return_url");
+  if(saved){ location.href = saved; return; }
+  location.href = "xd.html";
+}
+
+/* ── CHAT ── */
+let chatTimer = null;
+let lastChatTs = 0;
+
+function toggleChat(){
+  const box = document.getElementById("chatBox");
+  const open = !box.classList.contains("open");
+  box.classList.toggle("open", open);
+  if(open){
+    loadChat(true);
+    if(!chatTimer) chatTimer = setInterval(()=>loadChat(false), 2000);
+  }
+}
+
+function addEmoji(e){
+  const i = document.getElementById("chatInput");
+  i.value = (i.value||"")+e; i.focus();
+}
+
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+}
+
+async function loadChat(forceScroll){
+  try{
+    const r = await fetch("chat.php?api=fetch",{cache:"no-store"});
+    const j = await r.json();
+    if(!j.ok) return;
+    document.getElementById("chatOnline").textContent = j.online||0;
+    const isMod = j.me && ["moderator","admin"].includes(j.me.role);
+    const el = document.getElementById("chatMessages");
+    el.innerHTML = (j.messages||[]).map(m=>{
+      const time = m.t ? new Date(m.t*1000).toLocaleTimeString("tr-TR",{hour:'2-digit',minute:'2-digit'}) : "";
+      const delBtn = isMod
+        ? `<button type="button" onclick="delMsg('${m.id}')" style="margin-left:6px;font-size:11px;border:none;border-radius:8px;padding:4px 6px;background:rgba(255,0,80,.25);color:#fff;cursor:pointer;">Sil</button>`
+        : "";
+      return `
+        <div style="padding:8px 10px; margin-bottom:8px; border:1px solid rgba(255,255,255,.08);
+        background:rgba(255,255,255,.04); border-radius:14px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b style="color:rgba(0,240,255,.95)">${escapeHtml(m.user)}</b>
+            <span style="margin-left:auto; font-size:11px; color:rgba(255,255,255,.55)">${time}</span>
+            ${delBtn}
+          </div>
+          <div style="margin-top:4px; color:rgba(255,255,255,.9); white-space:pre-wrap; word-break:break-word;">
+            ${escapeHtml(m.msg)}
+          </div>
+        </div>`;
+    }).join("");
+    if(forceScroll) el.scrollTop = el.scrollHeight;
+  }catch(e){}
+}
+
+async function sendMsg(){
+  const input = document.getElementById("chatInput");
+  const msg = (input.value||"").trim();
+  if(!msg) return;
+  const now = Date.now();
+  if(now - lastChatTs < 1200) return;
+  lastChatTs = now;
+  try{
+    const body = new URLSearchParams();
+    body.set("msg", msg);
+    const r = await fetch("chat.php?api=send",{
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body: body.toString()
+    });
+    const j = await r.json();
+    if(j.ok){ input.value=""; loadChat(true); }
+  }catch(e){}
+}
+
+async function delMsg(id){
+  try{
+    const body = new URLSearchParams();
+    body.set("id", id);
+    const r = await fetch("chat.php?api=delete",{
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body: body.toString()
+    });
+    const j = await r.json();
+    if(j.ok) loadChat(false);
+  }catch(e){}
+}
+
+document.addEventListener("keydown",(e)=>{
+  if(e.key==="Enter" && document.activeElement?.id==="chatInput"){
+    e.preventDefault(); sendMsg();
+  }
+});
+
+function setupMediaSession(){
+  if(!("mediaSession" in navigator)) return;
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: "Kral Pop TV",
+    artist: "Canlı Yayın",
+    album: "Türkiye",
+    artwork: [
+      { src: "https://assets.uzunmuhalefet.com/logos/1dc650d4-0a3f-4f97-bdb2-4cf01cef8e0a.png", sizes: "512x512", type: "image/png" }
+    ]
+  });
+
+  navigator.mediaSession.setActionHandler("play", ()=>{ /* iframe yönetir */ });
+  navigator.mediaSession.setActionHandler("pause", ()=>{ /* iframe yönetir */ });
+  navigator.mediaSession.setActionHandler("stop", ()=>{ window.location.reload(); });
+}
+
+let wakeLock = null;
+async function requestWakeLock(){
+  if(!("wakeLock" in navigator)) return;
+  try{
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", ()=>{ wakeLock=null; });
+  }catch(e){}
+}
+
+document.addEventListener("visibilitychange", async ()=>{
+  if(document.visibilityState === "visible"){
+    if(!wakeLock) await requestWakeLock();
+  } else {
+    document.getElementById("bgStatus").style.display = "block";
+  }
+});
+
+function setupSilentAudio(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+
+    setInterval(()=>{
+      if(ctx.state === "suspended") ctx.resume();
+    }, 10000);
+  }catch(e){}
+}
+
+let bgSetup = false;
+function initBgPlay(){
+  if(bgSetup) return;
+  bgSetup = true;
+  setupMediaSession();
+  requestWakeLock();
+  setupSilentAudio();
+}
+
+document.addEventListener("click", initBgPlay, {once:true});
+document.addEventListener("touchstart", initBgPlay, {once:true});
+
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="visible"){
+    document.getElementById("bgStatus").style.display = "none";
+  }
+});
+
+window.addEventListener("load", ()=>{
+  const frame = document.getElementById("frame");
+  frame.setAttribute("allow","autoplay; fullscreen; picture-in-picture; web-share");
+});
+</script>
+
+</body></html>
